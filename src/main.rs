@@ -7,6 +7,7 @@ struct Client {
   dislikes: TokenSet,
 }
 
+#[derive(Default)]
 struct Game {
   clients: Vec<Client>,
   tokens: HashMap<String, usize>,
@@ -28,7 +29,7 @@ impl Game {
     tokens
   }
 
-  pub fn get_or_token(&mut self, t: &str) -> usize {
+  fn get_or_token(&mut self, t: &str) -> usize {
     let cached = self.tokens.get(t);
     if let Some(&c) = cached {
       return c;
@@ -37,16 +38,28 @@ impl Game {
     self.tokens.insert(t.to_string(), next_value);
     next_value
   }
+  fn insert_client(&mut self, client: Client) {
+    self.clients.push(client);
+  }
 }
 
-fn init() {
+fn init() -> Game {
   let stdin = stdin();
   let mut line_iter = stdin.lock().lines();
   let first: String = line_iter.next().unwrap().unwrap();
   let n: usize = first.parse().unwrap();
-  for _i in 0..n {}
+  let mut game: Game = Game::default();
+  for _i in 0..n {
+    let line: String = line_iter.next().unwrap().unwrap();
+    let likes = game.ingest_line(&line);
+    let line: String = line_iter.next().unwrap().unwrap();
+    let dislikes = game.ingest_line(&line);
+    let client = Client { likes, dislikes };
+    game.insert_client(client);
+  }
+  game
 }
 
 fn main() {
-  init()
+  let game = init();
 }
