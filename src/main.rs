@@ -22,14 +22,20 @@ impl Game {
     let mut tokens = TokenSet::with_capacity(n);
     for _i in 0..n {
       let ing: &str = ingredient_iter.next().unwrap();
-      let token = self.get_token(ing);
+      let token = self.get_or_token(ing);
       tokens.insert(token);
     }
     tokens
   }
 
-  pub fn get_token(&self, t: &str) -> usize {
-    1
+  pub fn get_or_token(&mut self, t: &str) -> usize {
+    let cached = self.tokens.get(t);
+    if let Some(&c) = cached {
+      return c;
+    }
+    let next_value = self.tokens.len() + 1;
+    self.tokens.insert(t.to_string(), next_value);
+    next_value
   }
 }
 
