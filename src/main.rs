@@ -1,5 +1,7 @@
 use std::collections::{HashMap, HashSet};
-use std::io::{stdin, BufRead};
+use std::env;
+use std::fs::File;
+use std::io::{prelude::*, BufReader};
 
 type TokenSet = HashSet<usize>;
 struct Client {
@@ -41,25 +43,31 @@ impl Game {
   fn insert_client(&mut self, client: Client) {
     self.clients.push(client);
   }
-}
 
-fn init() -> Game {
-  let stdin = stdin();
-  let mut line_iter = stdin.lock().lines();
-  let first: String = line_iter.next().unwrap().unwrap();
-  let n: usize = first.parse().unwrap();
-  let mut game: Game = Game::default();
-  for _i in 0..n {
-    let line: String = line_iter.next().unwrap().unwrap();
-    let likes = game.ingest_line(&line);
-    let line: String = line_iter.next().unwrap().unwrap();
-    let dislikes = game.ingest_line(&line);
-    let client = Client { likes, dislikes };
-    game.insert_client(client);
+  fn init(&mut self, filename: &str) {
+    let file: File = File::open(filename).expect(&format!("Cannot open file {}", filename));
+    let reader = BufReader::new(file);
+    let mut line_iter = reader.lines();
+    let first: String = line_iter.next().unwrap().unwrap();
+    let n: usize = first.parse().unwrap();
+    for _i in 0..n {
+      let line: String = line_iter.next().unwrap().unwrap();
+      let likes = self.ingest_line(&line);
+      let line: String = line_iter.next().unwrap().unwrap();
+      let dislikes = self.ingest_line(&line);
+      let client = Client { likes, dislikes };
+      self.insert_client(client);
+    }
   }
-  game
 }
 
 fn main() {
-  let game = init();
+  let args: Vec<String> = env::args().collect();
+  if args.len() != 2 {
+    println!("Invalid number of arguments")
+  }
+  let filename: &str = args.get(1).unwrap();
+  let mut game: Game = Game::default();
+  game.init(filename);
+  println!("{:?}", &game.tokens)
 }
