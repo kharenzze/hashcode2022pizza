@@ -1,7 +1,6 @@
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::env;
-use std::fmt::Display;
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::io::{prelude::*, BufReader};
 
 type TokenSet = HashSet<usize>;
@@ -90,6 +89,20 @@ impl Game {
     solution
   }
 
+  fn simple_solution(&self) -> TokenSet {
+    self
+      .simple_count
+      .likes
+      .iter()
+      .map(|(&key, &value)| {
+        let &dislike_count = self.simple_count.dislikes.get(&key).unwrap_or(&0);
+        (key, value as i32 - dislike_count as i32)
+      })
+      .filter(|&(_, value)| value >= 0)
+      .map(|(key, _)| key)
+      .collect()
+  }
+
   fn init(&mut self, filename: &str) {
     let file: File = File::open(filename).expect(&format!("Cannot open file {}", filename));
     let reader = BufReader::new(file);
@@ -115,6 +128,17 @@ fn main() {
   let filename: &str = args.get(1).unwrap();
   let mut game: Game = Game::default();
   game.init(filename);
-  println!("{:?}", &game.tokens);
-  println!("{:?}", &game.simple_count);
+  let tokens = game.simple_solution();
+  let solution = game.get_solution_string(&tokens);
+
+  let result_filename = format!("{}.result", filename);
+  let mut file = OpenOptions::new()
+    .write(true)
+    .create(true)
+    .open(&result_filename)
+    .expect("Cannot open file");
+
+  file
+    .write_all(solution.as_bytes())
+    .expect("Cannot write file");
 }
