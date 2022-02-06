@@ -2,6 +2,25 @@ use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::env;
 use std::fs::{File, OpenOptions};
 use std::io::{prelude::*, BufReader};
+use std::time::Instant;
+
+struct LocalTimer {
+  start: Instant,
+}
+
+impl LocalTimer {
+  fn new() -> Self {
+    Self {
+      start: Instant::now(),
+    }
+  }
+
+  fn step(&mut self, name: &str) {
+    let elapsed = self.start.elapsed();
+    println!("{}: {:.2?}", name, elapsed);
+    self.start = Instant::now();
+  }
+}
 
 type TokenSet = HashSet<usize>;
 type TokenMap = HashMap<String, usize>;
@@ -118,6 +137,14 @@ impl Game {
       self.insert_client(client);
     }
   }
+
+  fn measure(&self, tokens: &TokenSet) -> usize {
+    self
+      .clients
+      .iter()
+      .filter(|c| tokens.is_superset(&c.likes.set))
+      .count()
+  }
 }
 
 fn main() {
@@ -127,9 +154,17 @@ fn main() {
   }
   let filename: &str = args.get(1).unwrap();
   let mut game: Game = Game::default();
+  let mut timer = LocalTimer::new();
   game.init(filename);
+  timer.step("Init");
+
   let tokens = game.simple_solution();
+  timer.step("Tokens");
   let solution = game.get_solution_string(&tokens);
+  timer.step("toString");
+
+  println!("Points: {}", game.measure(&tokens));
+  timer.step("Measure");
 
   let result_filename = format!("{}.result", filename);
   let mut file = OpenOptions::new()
