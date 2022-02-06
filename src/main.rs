@@ -24,6 +24,7 @@ impl LocalTimer {
 
 type TokenSet = HashSet<usize>;
 type TokenMap = HashMap<String, usize>;
+type ReversedTokenMap = HashMap<usize, String>;
 type TokenCount = HashMap<usize, usize>;
 
 #[derive(Default, Debug)]
@@ -47,6 +48,7 @@ struct SimpleCount {
 struct Game {
   clients: Vec<Client>,
   tokens: TokenMap,
+  reversed_tokens: ReversedTokenMap,
   simple_count: SimpleCount,
 }
 
@@ -99,9 +101,9 @@ impl Game {
   fn get_solution_string(&self, tokens: &TokenSet) -> String {
     let mut solution = format!("{} ", tokens.len());
     for t in tokens {
-      let pair = self.tokens.iter().find(|&(_, value)| t == value);
-      let key = pair.unwrap().0;
-      solution.push_str(key);
+      //let pair = self.tokens.iter().find(|&(_, value)| t == value);
+      let ingredient = self.reversed_tokens.get(t).expect("token must exist");
+      solution.push_str(ingredient);
       solution.push_str(" ");
     }
     solution.pop();
@@ -136,6 +138,14 @@ impl Game {
       let client = Client { likes, dislikes };
       self.insert_client(client);
     }
+
+    self.reversed_tokens = self.tokens.iter().fold(
+      ReversedTokenMap::with_capacity(self.tokens.len()),
+      |mut acc, (key, &value)| {
+        acc.insert(value, key.clone());
+        acc
+      },
+    )
   }
 
   fn measure(&self, tokens: &TokenSet) -> usize {
