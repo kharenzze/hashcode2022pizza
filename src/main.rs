@@ -4,21 +4,31 @@ use std::fs::File;
 use std::io::{prelude::*, BufReader};
 
 type TokenSet = HashSet<usize>;
+type TokenMap = HashMap<String, usize>;
+type TokenCount = HashMap<usize, usize>;
 
 #[derive(Default, Debug)]
 struct IngredientSet {
   set: TokenSet,
   hash: String,
 }
+#[derive(Default, Debug)]
 struct Client {
   likes: IngredientSet,
   dislikes: IngredientSet,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
+struct SimpleCount {
+  likes: TokenCount,
+  dislikes: TokenCount,
+}
+
+#[derive(Default, Debug)]
 struct Game {
   clients: Vec<Client>,
-  tokens: HashMap<String, usize>,
+  tokens: TokenMap,
+  simple_count: SimpleCount,
 }
 
 impl Game {
