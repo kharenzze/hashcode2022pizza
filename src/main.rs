@@ -1,5 +1,6 @@
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::env;
+use std::fmt::Display;
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
 
@@ -72,8 +73,21 @@ impl Game {
     self.tokens.insert(t.to_string(), next_value);
     next_value
   }
+
   fn insert_client(&mut self, client: Client) {
     self.clients.push(client);
+  }
+
+  fn get_solution_string(&self, tokens: &TokenSet) -> String {
+    let mut solution = format!("{} ", tokens.len());
+    for t in tokens {
+      let pair = self.tokens.iter().find(|&(_, value)| t == value);
+      let key = pair.unwrap().0;
+      solution.push_str(key);
+      solution.push_str(" ");
+    }
+    solution.pop();
+    solution
   }
 
   fn init(&mut self, filename: &str) {
