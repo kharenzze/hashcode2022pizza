@@ -32,7 +32,7 @@ struct Game {
 }
 
 impl Game {
-  fn ingest_line(&mut self, l: &str) -> IngredientSet {
+  fn ingest_line(&mut self, l: &str, like: bool) -> IngredientSet {
     let mut ingredient_iter = l.split_ascii_whitespace();
     let n: usize = ingredient_iter.next().unwrap().parse().unwrap();
     if n == 0 {
@@ -42,7 +42,18 @@ impl Game {
       set: TokenSet::with_capacity(n),
       hash: String::new(),
     };
-    let sorted: BinaryHeap<usize> = ingredient_iter.map(|ing| self.get_or_token(ing)).collect();
+    let sorted: BinaryHeap<usize> = ingredient_iter
+      .map(|ing| {
+        let t = self.get_or_token(ing);
+        let count = match like {
+          true => &mut self.simple_count.likes,
+          false => &mut self.simple_count.dislikes,
+        };
+        let &current = count.get(&t).unwrap_or(&0);
+        count.insert(t, current + 1);
+        t
+      })
+      .collect();
     let mut info: IngredientSet = sorted.into_iter().fold(info, |mut acc, token| {
       acc.set.insert(token);
       acc.hash.push_str(&format!("{}-", token));
@@ -73,9 +84,9 @@ impl Game {
     let n: usize = first.parse().unwrap();
     for _i in 0..n {
       let line: String = line_iter.next().unwrap().unwrap();
-      let likes = self.ingest_line(&line);
+      let likes = self.ingest_line(&line, true);
       let line: String = line_iter.next().unwrap().unwrap();
-      let dislikes = self.ingest_line(&line);
+      let dislikes = self.ingest_line(&line, false);
       let client = Client { likes, dislikes };
       self.insert_client(client);
     }
@@ -90,5 +101,6 @@ fn main() {
   let filename: &str = args.get(1).unwrap();
   let mut game: Game = Game::default();
   game.init(filename);
-  println!("{:?}", &game.tokens)
+  println!("{:?}", &game.tokens);
+  println!("{:?}", &game.simple_count);
 }
