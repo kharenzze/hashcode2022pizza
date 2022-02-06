@@ -1,12 +1,18 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::env;
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
 
 type TokenSet = HashSet<usize>;
+
+#[derive(Default, Debug)]
+struct IngredientSet {
+  set: TokenSet,
+  hash: String,
+}
 struct Client {
-  likes: TokenSet,
-  dislikes: TokenSet,
+  likes: IngredientSet,
+  dislikes: IngredientSet,
 }
 
 #[derive(Default)]
@@ -16,19 +22,24 @@ struct Game {
 }
 
 impl Game {
-  fn ingest_line(&mut self, l: &str) -> TokenSet {
+  fn ingest_line(&mut self, l: &str) -> IngredientSet {
     let mut ingredient_iter = l.split_ascii_whitespace();
     let n: usize = ingredient_iter.next().unwrap().parse().unwrap();
     if n == 0 {
-      return TokenSet::new();
+      return IngredientSet::default();
     }
-    let mut tokens = TokenSet::with_capacity(n);
-    for _i in 0..n {
-      let ing: &str = ingredient_iter.next().unwrap();
-      let token = self.get_or_token(ing);
-      tokens.insert(token);
-    }
-    tokens
+    let info = IngredientSet {
+      set: TokenSet::with_capacity(n),
+      hash: String::new(),
+    };
+    let sorted: BinaryHeap<usize> = ingredient_iter.map(|ing| self.get_or_token(ing)).collect();
+    let mut info: IngredientSet = sorted.into_iter().fold(info, |mut acc, token| {
+      acc.set.insert(token);
+      acc.hash.push_str(&format!("{}-", token));
+      acc
+    });
+    info.hash.pop();
+    info
   }
 
   fn get_or_token(&mut self, t: &str) -> usize {
