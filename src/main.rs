@@ -124,6 +124,38 @@ impl Game {
       .collect()
   }
 
+  fn advanced_solution(&self) -> TokenSet {
+    let simple = self.simple_solution();
+    let mut dislike_options: BinaryHeap<(usize, usize)> = simple
+      .iter()
+      .map(|&token| {
+        (
+          self
+            .simple_count
+            .dislikes
+            .get(&token)
+            .unwrap_or(&0)
+            .to_owned(),
+          token,
+        )
+      })
+      .collect();
+    let mut solution: TokenSet = simple.clone();
+    let mut best_score = self.measure(&solution);
+
+    while let Some((_, token)) = dislike_options.pop() {
+      solution.remove(&token);
+      let score = self.measure(&solution);
+      if score > best_score {
+        best_score = score;
+      } else {
+        solution.insert(token);
+      }
+    }
+
+    solution
+  }
+
   fn init(&mut self, filename: &str) {
     let file: File = File::open(filename).expect(&format!("Cannot open file {}", filename));
     let reader = BufReader::new(file);
@@ -152,7 +184,9 @@ impl Game {
     self
       .clients
       .iter()
-      .filter(|c| tokens.is_superset(&c.likes.set))
+      .filter(|c| {
+        tokens.is_superset(&c.likes.set) && tokens.intersection(&c.dislikes.set).count() == 0
+      })
       .count()
   }
 }
@@ -168,8 +202,10 @@ fn main() {
   game.init(filename);
   timer.step("Init");
 
-  let tokens = game.simple_solution();
+  game.simple_solution();
   timer.step("Tokens");
+  let tokens = game.advanced_solution();
+  timer.step("Tokens Advanced");
   let solution = game.get_solution_string(&tokens);
   timer.step("toString");
 
