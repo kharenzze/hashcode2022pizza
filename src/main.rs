@@ -153,6 +153,20 @@ impl Game {
       }
     }
 
+    let all: TokenSet = self.tokens.values().cloned().collect();
+
+    let rest: TokenSet = all.difference(&solution).cloned().collect();
+
+    for token in rest {
+      solution.insert(token);
+      let score = self.measure(&solution);
+      if score > best_score {
+        best_score = score;
+      } else {
+        solution.remove(&token);
+      }
+    }
+
     solution
   }
 
