@@ -65,24 +65,27 @@ impl Game {
       let contributor_vec = contributor.split(" ").collect::<Vec<&str>>();
       let contributor_name: String = contributor_vec[0].to_string();
       let n_skills: usize = contributor_vec[1].parse::<usize>().unwrap();
+      let mut skills_hashmap: HashMap<String, Skill> = HashMap::new();
       for _j in 0..n_skills {
         let skill: String = get_line();
         let skill_vec = skill.split(" ").collect::<Vec<&str>>();
         let skill_name: String = skill_vec[0].to_string();
         let skill_level: usize = skill_vec[1].parse::<usize>().unwrap();
-        self
-          .contributors
-          .get_mut(&contributor_name)
-          .unwrap()
-          .skills
-          .insert(
-            skill_name.clone(),
-            Skill {
-              name: skill_name.clone(),
-              level: skill_level,
-            },
-          );
+        skills_hashmap.insert(
+          skill_name.clone(),
+          Skill {
+            name: skill_name.clone(),
+            level: skill_level,
+          },
+        );
       }
+      self.contributors.insert(
+        contributor_name.clone(),
+        Contributor {
+          name: contributor_name.clone(),
+          skills: skills_hashmap,
+        },
+      );
     }
     for _i in 0..P {
       let project: String = get_line();
@@ -92,12 +95,13 @@ impl Game {
       let project_score: usize = project_vec[2].parse::<usize>().unwrap();
       let project_best_before: usize = project_vec[3].parse::<usize>().unwrap();
       let project_n_contributors: usize = project_vec[4].parse::<usize>().unwrap();
+      let mut contributors_hashmap: HashMap<String, Skill> = HashMap::new();
       for _j in 0..project_n_contributors {
         let contributor: String = get_line();
         let contributor_vec = contributor.split(" ").collect::<Vec<&str>>();
         let contributor_name: String = contributor_vec[0].to_string();
         let level: usize = contributor_vec[1].parse::<usize>().unwrap();
-        self.projects.get_mut(&project_name).unwrap().skills.insert(
+        contributors_hashmap.insert(
           contributor_name.clone(),
           Skill {
             name: contributor_name.clone(),
@@ -105,6 +109,17 @@ impl Game {
           },
         );
       }
+      self.projects.insert(
+        project_name.clone(),
+        Project {
+          name: project_name.clone(),
+          days: project_days,
+          score: project_score,
+          best_before: project_best_before,
+          n_contributors: project_n_contributors,
+          skills: contributors_hashmap,
+        },
+      );
     }
   }
 }
