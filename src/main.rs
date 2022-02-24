@@ -22,34 +22,32 @@ impl LocalTimer {
   }
 }
 
-type TokenSet = HashSet<usize>;
-type TokenMap = HashMap<String, usize>;
-type ReversedTokenMap = HashMap<usize, String>;
-type TokenCount = HashMap<usize, usize>;
-
 #[derive(Default, Debug)]
-struct IngredientSet {
-  set: TokenSet,
-  hash: String,
-}
-#[derive(Default, Debug)]
-struct Client {
-  likes: IngredientSet,
-  dislikes: IngredientSet,
+struct Skill {
+  name: String,
+  level: usize,
 }
 
 #[derive(Default, Debug)]
-struct SimpleCount {
-  likes: TokenCount,
-  dislikes: TokenCount,
+struct Project {
+  name: String,
+  days: usize,
+  score: usize,
+  best_before: usize,
+  n_contributors: usize,
+  skills: HashMap<String, Skill>,
+}
+
+#[derive(Default, Debug)]
+struct Contributor {
+  name: String,
+  skills: HashMap<String, Skill>,
 }
 
 #[derive(Default, Debug)]
 struct Game {
-  clients: Vec<Client>,
-  tokens: TokenMap,
-  reversed_tokens: ReversedTokenMap,
-  simple_count: SimpleCount,
+  projects: HashMap<String, Project>,
+  contributors: HashMap<String, Contributor>,
 }
 
 impl Game {
