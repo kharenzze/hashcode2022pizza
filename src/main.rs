@@ -149,10 +149,12 @@ impl Game {
     projects_vec.sort_by(|a, b| {
       let a_score = self.projects.get(a).unwrap().score;
       let a_time = self.projects.get(a).unwrap().best_before;
+      let a_dur = self.projects.get(a).unwrap().days;
       let b_score = self.projects.get(b).unwrap().score;
       let b_time = self.projects.get(b).unwrap().best_before;
-      let a_points = a_score as f32 / a_time as f32;
-      let b_points = b_score as f32 / b_time as f32;
+      let b_dur = self.projects.get(b).unwrap().days;
+      let a_points = a_score as f32 / a_dur as f32;
+      let b_points = b_score as f32 / b_dur as f32;
       if b_points - a_points > 0.0 {
         std::cmp::Ordering::Less
       } else {
