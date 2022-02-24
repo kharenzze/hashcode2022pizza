@@ -29,6 +29,12 @@ struct Skill {
 }
 
 #[derive(Default, Debug)]
+struct Plan {
+  project_name: String,
+  contributors: HashSet<String>,
+}
+
+#[derive(Default, Debug)]
 struct Project {
   name: String,
   days: usize,
@@ -122,6 +128,31 @@ impl Game {
       );
     }
   }
+
+  fn greedy(&self) -> Vec<Plan> {
+    let mut result = vec![];
+    for (name, p) in self.projects.iter() {
+      let mut candidates: HashSet<String> = Default::default();
+      for (_, req) in p.skills.iter() {
+        let exist = self.contributors.iter().find(|(_, c)| {
+          let skill_req = c.skills.get(&req.name);
+          if let Some(r) = skill_req {
+            if r.level >= req.level {
+              return true;
+            }
+          }
+          return false;
+        });
+        if let Some((candidate, _)) = exist {
+          candidates.insert(candidate.clone());
+        }
+      }
+      if p.skills.len() == candidates.len() {
+        result.push(Plan { project_name: p.name.clone(), contributors: candidates })
+      }
+    }
+    result
+  }
 }
 
 fn main() {
@@ -134,6 +165,5 @@ fn main() {
   let mut timer = LocalTimer::new();
   game.init(filename);
   timer.step("Init");
-  println!("{:?}", game);
   println!("{:?}", game);
 }
