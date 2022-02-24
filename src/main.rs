@@ -155,7 +155,7 @@ impl Game {
           candidates_vec.push(candidate.clone());
         }
       }
-      if p.skills.len() == candidates.len() {
+      if p.skill_order.len() == candidates.len() {
         result.push(Plan {
           project_name: p.name.clone(),
           contributors: candidates_vec,
