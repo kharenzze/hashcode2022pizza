@@ -56,6 +56,7 @@ struct Contributor {
 struct Game {
   projects: HashMap<String, Project>,
   contributors: HashMap<String, Contributor>,
+  skill_map: HashMap<String, Vec<String>>,
 }
 
 impl Game {
@@ -68,6 +69,7 @@ impl Game {
     let first_vec = first.split(" ").collect::<Vec<&str>>();
     let C = first_vec[0].parse::<usize>().unwrap();
     let P = first_vec[1].parse::<usize>().unwrap();
+    let mut skill_map: HashMap<String, Vec<String>> = Default::default();
     for _i in 0..C {
       let contributor: String = get_line();
       let contributor_vec = contributor.split(" ").collect::<Vec<&str>>();
@@ -86,6 +88,12 @@ impl Game {
             level: skill_level,
           },
         );
+        let candidates = skill_map.get_mut(&skill_name);
+        if let Some(c) = candidates {
+          c.push(contributor_name.clone());
+        } else {
+          skill_map.insert(skill_name.clone(), vec![contributor_name.clone()]);
+        }
       }
       self.contributors.insert(
         contributor_name.clone(),
@@ -132,6 +140,8 @@ impl Game {
         },
       );
     }
+    self.skill_map = skill_map;
+    println!("{:?}", &self.skill_map);
   }
 
   fn greedy(&self) -> Vec<Plan> {
@@ -191,7 +201,6 @@ fn main() {
   let mut timer = LocalTimer::new();
   game.init(filename);
   timer.step("Init");
-  println!("{:?}", game);
 
   let result = game.greedy();
   let solution = solution_to_string(result);
