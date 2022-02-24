@@ -141,7 +141,6 @@ impl Game {
       );
     }
     self.skill_map = skill_map;
-    println!("{:?}", &self.skill_map);
   }
 
   fn greedy(&self) -> Vec<Plan> {
@@ -149,8 +148,16 @@ impl Game {
     let mut projects_vec: Vec<String> = self.projects.keys().map(|x| x.clone()).collect();
     projects_vec.sort_by(|a, b| {
       let a_score = self.projects.get(a).unwrap().score;
+      let a_time = self.projects.get(a).unwrap().best_before;
       let b_score = self.projects.get(b).unwrap().score;
-      b_score.cmp(&a_score)
+      let b_time = self.projects.get(b).unwrap().best_before;
+      let a_points = a_score as f32 / a_time as f32;
+      let b_points = b_score as f32 / b_time as f32;
+      if b_points - a_points > 0.0 {
+        std::cmp::Ordering::Less
+      } else {
+        std::cmp::Ordering::Greater
+      }
     });
     for project_key in projects_vec {
       let project = self.projects.get(&project_key).unwrap();
