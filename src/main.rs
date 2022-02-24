@@ -146,11 +146,18 @@ impl Game {
 
   fn greedy(&self) -> Vec<Plan> {
     let mut result = vec![];
-    for (name, p) in self.projects.iter() {
+    let mut projects_vec: Vec<String> = self.projects.keys().map(|x| x.clone()).collect();
+    projects_vec.sort_by(|a, b| {
+      let a_score = self.projects.get(a).unwrap().score;
+      let b_score = self.projects.get(b).unwrap().score;
+      b_score.cmp(&a_score)
+    });
+    for project_key in projects_vec {
+      let project = self.projects.get(&project_key).unwrap();
       let mut candidates: HashSet<String> = Default::default();
       let mut candidates_vec: Vec<String> = Default::default();
-      for req_name in p.skill_order.iter() {
-        let req = p.skills.get(req_name).unwrap();
+      for req_name in project.skill_order.iter() {
+        let req = project.skills.get(req_name).unwrap();
         let exist = self.contributors.iter().find(|(_, c)| {
           let skill_req = c.skills.get(&req.name);
           if let Some(r) = skill_req {
@@ -165,9 +172,9 @@ impl Game {
           candidates_vec.push(candidate.clone());
         }
       }
-      if p.skill_order.len() == candidates.len() {
+      if project.skill_order.len() == candidates.len() {
         result.push(Plan {
-          project_name: p.name.clone(),
+          project_name: project.name.clone(),
           contributors: candidates_vec,
         })
       }
