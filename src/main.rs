@@ -159,6 +159,7 @@ impl Game {
         std::cmp::Ordering::Greater
       }
     });
+    let mut seen: HashMap<String, usize> = Default::default();
     for project_key in projects_vec {
       let project = self.projects.get(&project_key).unwrap();
       let mut candidates: HashSet<String> = Default::default();
@@ -188,8 +189,16 @@ impl Game {
       if project.skill_order.len() == candidates.len() {
         result.push(Plan {
           project_name: project.name.clone(),
-          contributors: candidates_vec,
-        })
+          contributors: candidates_vec.clone(),
+        });
+        for c in candidates_vec {
+          let count = seen.get_mut(&c);
+          if let Some(pointer) = count {
+            *pointer = *pointer + 1;
+          } else {
+            seen.insert(c.clone(), 1);
+          }
+        }
       }
     }
     result
