@@ -158,8 +158,14 @@ impl Game {
       let mut candidates_vec: Vec<String> = Default::default();
       for req_name in project.skill_order.iter() {
         let req = project.skills.get(req_name).unwrap();
-        let exist = self.contributors.iter().find(|(_, c)| {
-          let skill_req = c.skills.get(&req.name);
+        let posible = self.skill_map.get(req_name);
+        if posible.is_none() {
+          break;
+        }
+        let posible = posible.unwrap();
+        let exist = posible.iter().find(|&name| {
+          let contri = self.contributors.get(name).unwrap();
+          let skill_req = contri.skills.get(&req.name);
           if let Some(r) = skill_req {
             if r.level >= req.level {
               return true;
@@ -167,7 +173,7 @@ impl Game {
           }
           return false;
         });
-        if let Some((candidate, _)) = exist {
+        if let Some(candidate) = exist {
           candidates.insert(candidate.clone());
           candidates_vec.push(candidate.clone());
         }
