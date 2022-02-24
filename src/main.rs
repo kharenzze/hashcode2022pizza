@@ -171,17 +171,27 @@ impl Game {
           break;
         }
         let posible = posible.unwrap();
-        let exist = posible.iter().find(|&name| {
-          let contri = self.contributors.get(name).unwrap();
-          let skill_req = contri.skills.get(&req.name);
-          if let Some(r) = skill_req {
-            if r.level >= req.level {
-              return true;
+        let mut exist: Vec<String> = posible
+          .iter()
+          .filter(|&name| {
+            let contri = self.contributors.get(name).unwrap();
+            let skill_req = contri.skills.get(&req.name);
+            if let Some(r) = skill_req {
+              if r.level >= req.level {
+                return true;
+              }
             }
-          }
-          return false;
-        });
-        if let Some(candidate) = exist {
+            return false;
+          })
+          .map(|x| x.clone())
+          .collect();
+        if exist.len() != 0 {
+          exist.sort_by(|a, b| {
+            let a_seen = seen.get(a).unwrap_or(&0);
+            let b_seen = seen.get(b).unwrap_or(&0);
+            a_seen.cmp(b_seen)
+          });
+          let candidate = exist.first().unwrap();
           candidates.insert(candidate.clone());
           candidates_vec.push(candidate.clone());
         }
