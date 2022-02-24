@@ -32,7 +32,7 @@ struct Skill {
 #[derive(Default, Debug)]
 struct Plan {
   project_name: String,
-  contributors: HashSet<String>,
+  contributors: Vec<String>,
 }
 
 #[derive(Default, Debug)]
@@ -43,6 +43,7 @@ struct Project {
   best_before: usize,
   n_contributors: usize,
   skills: HashMap<String, Skill>,
+  skill_order: Vec<String>,
 }
 
 #[derive(Default, Debug)]
@@ -103,6 +104,7 @@ impl Game {
       let project_best_before: usize = project_vec[3].parse::<usize>().unwrap();
       let project_n_contributors: usize = project_vec[4].parse::<usize>().unwrap();
       let mut contributors_hashmap: HashMap<String, Skill> = HashMap::new();
+      let mut sorted_skills: Vec<String> = vec![];
       for _j in 0..project_n_contributors {
         let contributor: String = get_line();
         let contributor_vec = contributor.split(" ").collect::<Vec<&str>>();
@@ -115,6 +117,7 @@ impl Game {
             level: level,
           },
         );
+        sorted_skills.push(contributor_name.clone());
       }
       self.projects.insert(
         project_name.clone(),
@@ -125,6 +128,7 @@ impl Game {
           best_before: project_best_before,
           n_contributors: project_n_contributors,
           skills: contributors_hashmap,
+          skill_order: sorted_skills,
         },
       );
     }
@@ -134,7 +138,9 @@ impl Game {
     let mut result = vec![];
     for (name, p) in self.projects.iter() {
       let mut candidates: HashSet<String> = Default::default();
-      for (_, req) in p.skills.iter() {
+      let mut candidates_vec: Vec<String> = Default::default();
+      for req_name in p.skill_order.iter() {
+        let req = p.skills.get(req_name).unwrap();
         let exist = self.contributors.iter().find(|(_, c)| {
           let skill_req = c.skills.get(&req.name);
           if let Some(r) = skill_req {
@@ -146,12 +152,13 @@ impl Game {
         });
         if let Some((candidate, _)) = exist {
           candidates.insert(candidate.clone());
+          candidates_vec.push(candidate.clone());
         }
       }
       if p.skills.len() == candidates.len() {
         result.push(Plan {
           project_name: p.name.clone(),
-          contributors: candidates,
+          contributors: candidates_vec,
         })
       }
     }
