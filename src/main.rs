@@ -1,7 +1,8 @@
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::env;
+use std::fmt::Write as WWrite;
 use std::fs::{File, OpenOptions};
-use std::io::{prelude::*, BufReader};
+use std::io::{prelude::*, BufReader, Write};
 use std::time::Instant;
 
 struct LocalTimer {
@@ -148,11 +149,29 @@ impl Game {
         }
       }
       if p.skills.len() == candidates.len() {
-        result.push(Plan { project_name: p.name.clone(), contributors: candidates })
+        result.push(Plan {
+          project_name: p.name.clone(),
+          contributors: candidates,
+        })
       }
     }
     result
   }
+}
+
+fn solution_to_string(r: Vec<Plan>) -> String {
+  let mut sol = "".to_string();
+  let l = r.len();
+  if l != 0 {
+    writeln!(&mut sol, "{}", l);
+    for plan in r {
+      writeln!(&mut sol, "{}", &plan.project_name);
+      let arr: Vec<String> = plan.contributors.iter().map(|x| x.clone()).collect();
+      writeln!(&mut sol, "{}", &arr.join(" "));
+    }
+  }
+
+  sol
 }
 
 fn main() {
@@ -166,4 +185,19 @@ fn main() {
   game.init(filename);
   timer.step("Init");
   println!("{:?}", game);
+
+  let result = game.greedy();
+  let solution = solution_to_string(result);
+
+  let result_filename = format!("{}.result", filename);
+  let mut file = OpenOptions::new()
+    .write(true)
+    .create(true)
+    .truncate(true)
+    .open(&result_filename)
+    .expect("Cannot open file");
+
+  file
+    .write_all(solution.as_bytes())
+    .expect("Cannot write file");
 }
