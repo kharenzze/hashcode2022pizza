@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::env;
 use std::fmt::Write as WWrite;
@@ -147,20 +148,21 @@ impl Game {
     let mut result = vec![];
     let mut projects_vec: Vec<String> = self.projects.keys().map(|x| x.clone()).collect();
     projects_vec.sort_by(|a, b| {
-      let a_score = self.projects.get(a).unwrap().score;
-      let a_time = self.projects.get(a).unwrap().best_before;
-      let a_dur = self.projects.get(a).unwrap().days;
-      let b_score = self.projects.get(b).unwrap().score;
-      let b_time = self.projects.get(b).unwrap().best_before;
-      let b_dur = self.projects.get(b).unwrap().days;
-      let a_points = a_score as f32 / a_dur as f32;
-      let b_points = b_score as f32 / b_dur as f32;
-      if b_points - a_points > 0.0 {
-        std::cmp::Ordering::Less
-      } else {
-        std::cmp::Ordering::Greater
-      }
+      let ap = self.projects.get(a).unwrap();
+      let bp = self.projects.get(b).unwrap();
+      let a_points = 1.0 / ap.n_contributors as f32 / ap.days as f32;
+      let b_points = 1.0 / bp.n_contributors as f32 / bp.days as f32;
+      return b_points.partial_cmp(&a_points).unwrap();
     });
+
+    projects_vec.iter().for_each(|a| {
+      let project = self.projects.get(a).unwrap();
+      println!(
+        "{} {} {} {}",
+        &project.name, &project.n_contributors, &project.score, &project.days
+      )
+    });
+
     let mut seen: HashMap<String, usize> = Default::default();
     for project_key in projects_vec {
       let project = self.projects.get(&project_key).unwrap();
@@ -193,9 +195,13 @@ impl Game {
             let b_seen = seen.get(b).unwrap_or(&0);
             a_seen.cmp(b_seen)
           });
-          let candidate = exist.first().unwrap();
-          candidates.insert(candidate.clone());
-          candidates_vec.push(candidate.clone());
+
+          let candidatee = exist.iter().filter(|&c| !candidates.contains(c)).next();
+
+          if let Some(candidate) = candidatee {
+            candidates.insert(candidate.clone());
+            candidates_vec.push(candidate.clone());
+          }
         }
       }
       if project.skill_order.len() == candidates.len() {
@@ -241,6 +247,7 @@ fn main() {
   let mut game: Game = Game::default();
   let mut timer = LocalTimer::new();
   game.init(filename);
+  println!("{:?}", &game);
   timer.step("Init");
 
   let result = game.greedy();
